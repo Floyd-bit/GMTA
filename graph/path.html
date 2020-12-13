@@ -150,6 +150,13 @@
             }
         }
       }
+
+    var urlhttpMethod;
+    var urlhttpPath;
+    var count;
+    var pathId;
+    var errorCount;
+    var durations;
     //todo  悬停在节点上--显示弹框
     network.on('hoverNode',function(properties){
         var hoveNodeList = getNode(properties.node);
@@ -159,13 +166,16 @@
         //var ff=parent.$("#frame1")[0].contentWindow.ff;
         // parent.$("#frame1")[0].contentWindow.location.reload();
         var $ul = "<ul>"
-                +"<li>cout："+ hoveNodeList.cout+"</li>"
+                +"<li>cout："+ count+"</li>"
                 +"<li>pathId："+ hoveNodeList.pathId+"</li>"
-                +"<li>errorCount："+ hoveNodeList.errorCount+"</li>"
-                +"<li>durations："+ hoveNodeList.durations+"</li>"
+                +"<li>errorCount："+ errorCount+"</li>"
+                +"<li>durations："+ durations+"</li>"
+                +"<li>falseNode；"+ hoveNodeList.falseNode+"</li>"
                 +"</ul>";
             $("#divHoverNode").append($ul);
-        
+        urlhttpMethod = hoveNodeList.httpMethod;
+        urlhttpPath = hoveNodeList.httpPath;
+        getInformation(urlhttpMethod,urlhttpPath,path);
         $('#divHoverNode').css({
             'display': 'block',
             'left': properties.event.offsetX + 15,
@@ -174,6 +184,27 @@
         $('#menuOperation').hide();
 
     });
+    function getInformation(httpMethod,httpPath,path) {
+      var url1= `http://47.110.156.20:10000/api/path/operation?httpMethod=${httpMethod}&httpPath=${httpPath}&pathId=${path}`;  
+      var self = this
+        axios.get(url1, {
+          params: {
+
+          }
+        }).then(function (response) {
+          self.count = response.data.count;
+          self.errorCount = response.data.errorCount;
+          self.durations = response.data.durations;
+          //console.log(response);
+          count = self.count;
+          errorCount = self.errorCount;
+          durations = self.durations;
+          
+          //const _nodes = new vis.DataSet(self.nodes);
+          //const _edges = new vis.DataSet(self.edges);
+        
+        })
+      }
     //todo  从节点移开---隐藏弹框
     network.on('blurNode',function(){
         $("#divHoverNode").hide();
