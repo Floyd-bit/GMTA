@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>NetWork</title>
+<link href="https://magicbox.bk.tencent.com/static_api/v3/assets/bootstrap-3.3.4/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://magicbox.bk.tencent.com/static_api/v3/assets/bkTopology-1.1/css/bkTopology.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://magicbox.bk.tencent.com/static_api/v3/assets/js/jquery-1.10.2.min.js"></script>
+<script src="https://magicbox.bk.tencent.com/static_api/v3/assets/bootstrap-3.3.4/js/bootstrap.min.js"></script>
+<script src="https://magicbox.bk.tencent.com/static_api/v3/assets/bkTopology-1.2/js/bkTopology.js"></script>
+</head>
+
+<body>
+<div id="app" style="margin-top: 60px;">
+    <el-row :gutter="40">
+        <el-col :span="16" :offset="4">
+            <div class="none node" id="node-templates" data-container="body" data-placement="top" data-html="true" data-trigger="hover">
+                <div class="node-container"><span class="node-text"></span></div>
+            </div>
+            <div class="bktopo-container">
+                <div class="bktopo_demo" id="bktopo_demo2">
+                    <div class="none node" id="node-templates" data-container="body" data-placement="top" data-html="true" data-trigger="hover">
+                        <div class="node-container"><span class="node-text"></span></div></div>
+                    <div class="bktopo_box" style="height:350px;"></div>
+                </div>
+            </div>
+        </el-col>
+    </el-row>
+</div>
+
+<script type="text/javascript">
+    new Vue({
+        el: '#app',
+        data: {
+        },
+        mounted() {
+            this.init()
+        },
+        methods: {
+            init() {
+                axios.get(site_url + "topo/").then(res => {
+                    if (res.data.result){
+                        $('#bktopo_demo2 .bktopo_box').bkTopology({
+                            data: res.data.data, //配置数据源
+                            lineType: [ //配置线条的类型
+                                {type: 'success', lineColor: '#46C37B'},
+                                {type: 'info', lineColor: '#4A9BFF'},
+                                {type: 'warning', lineColor: '#f0a63a'},
+                                {type: 'danger', lineColor: '#c94d3c'},
+                                {type: 'default', lineColor: '#aaa'}
+                            ]
+                        });
+                    }else{
+                        this.$message.error('获取拓朴数据失败');
+                    }
+                },'json');
+            }
+        }
+    })
+</script>
+</body>
+</html>

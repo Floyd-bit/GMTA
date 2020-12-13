@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Network</title>
+  <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+  <script src="http://cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <script src="https://how2j.cn/study/vue.min.js"></script>
+  <script src="https://how2j.cn/study/axios.min.js"></script>
+  <style type="text/css">
+    .app{
+      display: flex;
+      flex-direction: row;
+      width: 1500px;
+      height: 1000px;
+    }
+    #mynetwork{
+      width: 800px;
+      height: 800px;
+      border: 1px solid lightgray;
+    }
+    #configecontainer{
+      width: auto;
+      height: auto;
+      border: 1px solid lightgray;
+    }
+    .menu{
+            /*这个样式不写，右键弹框会一直显示在画布的左下角*/
+            position: absolute;
+            background: rgba(3,3,3,0.6);
+            border-radius: 5px;
+            left: -99999px;
+            top: -999999px;
+        }
+        .menu ul{list-style: none}
+        .menu ul li{
+            padding: 5px 10px;
+            color: #ffff;
+            border-bottom: 1px solid #ffffff;
+            font-size: 14px;
+            cursor: pointer;
+            list-style: none;
+        }
+        .menu ul li:hover{
+            color: #659bc5;
+        }
+        .menu ul li:last-child{
+            border-bottom: none;
+            padding: 5px 10px 0 10px;
+        }
+
+  </style>
+</head>
+
+<body>
+ <div class="app">
+  <div id="mynetwork"></div>
+  <div id="configecontainer"></div>
+  <div class="menu" id="divHoverNode" style="display: none;">
+  <!--<ul></ul>-->
+</div>
+ </div>
+  <script type="text/javascript">
+    // create an array with nodes
+    var path;
+    var url = "http://47.110.156.20:10000/api/path";
+    new Vue({
+      el: '#mynetwork',
+      data: {
+        nodes: [],
+        edges: []
+      },
+      mounted: function () {
+        var self = this
+        axios.get(url, {
+          params: {
+
+          }
+        }).then(function (response) {
+          self.nodes = response.data.nodeVos;
+          self.edges = response.data.edgeVos;
+          const node = self.nodes;
+          const edge = self.edges;
+          const _nodes = new vis.DataSet(self.nodes);
+          const _edges = new vis.DataSet(self.edges);
+
+          // create a network
+          var container = document.getElementById("mynetwork");
+          var configecontainer=document.getElementById("configecontainer");
+          var data = {
+            nodes: _nodes,
+            edges: _edges,
+          };
+          console.log('nodes',data.nodes);
+          
+          var options = {
+            autoResize: true,
+            height: '100%',
+            width: '100%',
+            clickToUse: true,
+            configure: {    //配置选项
+              enabled: false,
+              filter: 'nodes,edges',
+              container: configecontainer,
+              showButton: false
+            },
+            
+            interaction: {  //交互
+              hover:true,
+              hoverConnectedEdges: true
+              
+            },
+            layout: {
+              randomSeed: undefined, // 布局的随机种子，如果不设置，每次进来布局都是随机的；这个数值可以任意设置，只要是个数字就行
+              improvedLayout: true, // 使用【 Kamada Kawai】布局算法；如果不用这个算法，会出现很多交叉的线条
+              hierarchical: { // 分等级的，分层的，层次的，效果类似xmind图
+                enabled: true,
+                levelSeparation: 150,// 不同level之间的距离；可以理解为不同level之间的高度
+                nodeSpacing: 100,
+                treeSpacing: 200,
+                blockShifting: true,
+                edgeMinimization: true,
+                parentCentralization: true,
+                direction: 'LR',        // UD, DU, LR, RL 
+                sortMethod: 'directed'   // 算法，支持两种：hubsize, directed
+              }
+            },
+            nodes: {          //结点颜色和样式
+              shape:'box',
+              color:{
+                border:'black',
+              }
+            }
+          };
+          var network = new vis.Network(container, data, options);
+          network.setOptions(options);
+          
+    /**
+     * 节点鼠标悬停（点击）获取到的信息
+     * 因为hoverNode事件官方文档中给的信息悬停时只传了id值，想在鼠标悬停的时候显示该节点的信息拿不到值，所以遍历节点，相等的时候return改节点的信息
+     * @param option-----鼠标悬停时取得的id
+     * @returns {{flag, port, ip, name, ignore, id, type}|{flag, port, ip, name, ignore, model, id, type, mac, uptime}|{flag, port, ip, name, ignore, model, location, id, type, mac, account, uptime}|*}
+     */
+    function getNode(option) {
+        for (var i = 0;i < node.length;i++){
+            if (option == node[i].id){
+                 console.log('i',node[i]);
+                return node[i];
+            }
+        }
+      }
+    //todo  悬停在节点上--显示弹框
+    network.on('hoverNode',function(properties){
+        var hoveNodeList = getNode(properties.node);
+         console.log('hoveNodeList',hoveNodeList);
+         path = hoveNodeList.pathId;   
+        console.log(path);
+        //var ff=parent.$("#frame1")[0].contentWindow.ff;
+        // parent.$("#frame1")[0].contentWindow.location.reload();
+        var $ul = "<ul>"
+                +"<li>cout："+ hoveNodeList.cout+"</li>"
+                +"<li>pathId："+ hoveNodeList.pathId+"</li>"
+                +"<li>errorCount："+ hoveNodeList.errorCount+"</li>"
+                +"<li>durations："+ hoveNodeList.durations+"</li>"
+                +"</ul>";
+            $("#divHoverNode").append($ul);
+        
+        $('#divHoverNode').css({
+            'display': 'block',
+            'left': properties.event.offsetX + 15,
+            'top' : properties.event.offsetY + 15
+        });
+        $('#menuOperation').hide();
+
+    });
+    //todo  从节点移开---隐藏弹框
+    network.on('blurNode',function(){
+        $("#divHoverNode").hide();
+        $("#divHoverNode").empty();//移除之后清空div
+    });
+        })
+      }
+    })
+    function getpath(){
+      return path;
+    }
+  </script>
+</body>
+
+</html>
